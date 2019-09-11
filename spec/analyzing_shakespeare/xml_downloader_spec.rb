@@ -1,9 +1,24 @@
 require 'spec_helper'
+require 'open-uri'
+require 'analyzing_shakespeare/xml_downloader'
 
-# One of the reqs of the exercise is to not download the actual file when
-# running tests, though we need to get the XML file in the implementation.
-# There's no need to use VCR here. The question is: how do I check that the file
-# has been downloaded? Does it need to run through a specific test?
+class FakeXMLDownloader < AnalyzingShakespeare::XmlDownloader
+  def successful_download
+    File.read('./spec/fixtures/macbeth_excerpt.xml')
+  end
+end
+
 RSpec.describe AnalyzingShakespeare::XmlDownloader do
+  subject(:downloader) { FakeXMLDownloader.new }
 
+  describe '#download' do
+    it 'returns a XML string' do
+      expect(downloader.successful_download).to match(/xml version/)
+    end
+
+    it 'raises an error when the download fails' do
+      odd_downloader = FakeXMLDownloader.new(url: 'http://foo-lang.org')
+      expect{ odd_downloader.download }.to raise_error
+    end
+  end
 end
